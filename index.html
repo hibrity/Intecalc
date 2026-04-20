@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>CalcVision</title>
+  <style>
+    :root{
+      --bg:#050c08;
+      --bg-soft:#08120d;
+      --panel:#0b1611;
+      --panel-2:#0f1d16;
+      --line:rgba(255,255,255,.08);
+      --text:#f4fff8;
+      --muted:#98b6a5;
+      --accent:#18ff6d;
+      --accent-soft:rgba(24,255,109,.14);
+      --danger:#ff5e5e;
+      --warning:#ffb341;
+      --blue:#3ea6ff;
+      --shadow:0 20px 50px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, rgba(24,255,109,.05), transparent 22%),
+        linear-gradient(180deg, #050c08 0%, #07110b 100%);
+    }
+
+    .page{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:18px 20px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .brand-wrap{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .brand{
+      font-size:28px;
+      font-weight:900;
+      color:var(--accent);
+      letter-spacing:.02em;
+    }
+
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .badge{
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--muted);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .container{
+      width:100%;
+      max-width:1180px;
+      margin:0 auto;
+      padding:20px;
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+    }
+
+    .card{
+      background:rgba(10,20,15,.94);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .card h2{
+      margin:0 0 14px;
+      font-size:20px;
+    }
+
+    .muted{
+      color:var(--muted);
+    }
+
+    .upload-box{
+      border:1px dashed rgba(24,255,109,.28);
+      border-radius:18px;
+      background:
+        linear-gradient(180deg, rgba(24,255,109,.04), rgba(24,255,109,.02)),
+        var(--bg-soft);
+      padding:18px;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .btn,
+    .file-label{
+      height:46px;
+      padding:0 18px;
+      border-radius:12px;
+      border:0;
+      font-weight:900;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-decoration:none;
+      transition:.2s ease;
+    }
+
+    .btn.primary,
+    .file-label.primary{
+      background:linear-gradient(180deg,#24ff79 0%, #0fbd52 100%);
+      color:#04120a;
+    }
+
+    .btn.secondary,
+    .file-label.secondary{
+      background:linear-gradient(180deg,#3ea6ff 0%, #1174d5 100%);
+      color:#fff;
+    }
+
+    .btn.ghost{
+      background:#141f19;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .btn.danger{
+      background:linear-gradient(180deg,#ff6a6a 0%, #d83c3c 100%);
+      color:#fff;
+    }
+
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    input[type="file"]{
+      display:none;
+    }
+
+    .preview-wrap{
+      margin-top:16px;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:#08110d;
+      min-height:240px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .preview-wrap img{
+      width:100%;
+      max-height:460px;
+      object-fit:contain;
+      display:block;
+      background:#08110d;
+    }
+
+    .placeholder{
+      color:var(--muted);
+      text-align:center;
+      padding:26px;
+      line-height:1.6;
+    }
+
+    .ocr-status{
+      margin-top:14px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:var(--bg-soft);
+      border:1px solid rgba(255,255,255,.04);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .ocr-output{
+      margin-top:14px;
+      padding:14px;
+      border-radius:14px;
+      background:#08110d;
+      border:1px solid rgba(255,255,255,.04);
+      max-height:220px;
+      overflow:auto;
+      white-space:pre-wrap;
+      font-size:13px;
+      color:#dce8e0;
+      line-height:1.5;
+    }
+
+    .summary-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .total-box{
+      min-width:180px;
+      border-radius:18px;
+      padding:16px 18px;
+      background:linear-gradient(180deg, rgba(24,255,109,.10), rgba(24,255,109,.04));
+      border:1px solid rgba(24,255,109,.18);
+    }
+
+    .total-label{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .total-value{
+      font-size:34px;
+      font-weight:900;
+      color:var(--accent);
+    }
+
+    .stats-row{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .stat{
+      border-radius:16px;
+      padding:14px;
+      background:var(--bg-soft);
+      border:1px solid rgba(255,255,255,.04);
+    }
+
+    .stat-label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:8px;
+      font-weight:700;
+    }
+
+    .stat-value{
+      font-size:22px;
+      font-weight:900;
+    }
+
+    .list{
+      margin-top:18px;
+      display:grid;
+      gap:12px;
+    }
+
+    .item{
+      display:grid;
+      grid-template-columns:1fr auto auto;
+      gap:10px;
+      align-items:center;
+      padding:12px;
+      border-radius:16px;
+      background:var(--bg-soft);
+      border:1px solid rgba(255,255,255,.04);
+    }
+
+    .item input{
+      width:100%;
+      height:42px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#07100c;
+      color:var(--text);
+      padding:0 12px;
+      outline:none;
+      font-size:15px;
+      font-weight:700;
+    }
+
+    .item-meta{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .mini-btn{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#131c17;
+      color:var(--text);
+      cursor:pointer;
+      font-weight:900;
+    }
+
+    .empty-state{
+      margin-top:18px;
+      padding:18px;
+      border-radius:16px;
+      background:var(--bg-soft);
+      border:1px dashed rgba(255,255,255,.06);
+      color:var(--muted);
+      text-align:center;
+      line-height:1.6;
+    }
+
+    .manual-add{
+      margin-top:18px;
+      padding-top:18px;
+      border-top:1px solid var(--line);
+      display:grid;
+      gap:12px;
+    }
+
+    .manual-row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+    }
+
+    .manual-row input{
+      width:100%;
+      height:46px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#07100c;
+      color:var(--text);
+      padding:0 14px;
+      outline:none;
+      font-size:15px;
+      font-weight:700;
+    }
+
+    .hint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    @media (max-width: 980px){
+      .container{
+        grid-template-columns:1fr;
+      }
+
+      .stats-row{
+        grid-template-columns:1fr;
+      }
+
+      .item{
+        grid-template-columns:1fr auto;
+      }
+
+      .item .delete-wrap{
+        grid-column:1 / -1;
+        justify-self:end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand">CalcVision</div>
+        <div class="sub">Calculadora inteligente por imagem</div>
+      </div>
+      <div class="badge">GitHub Pages • HTML</div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>Capturar imagem</h2>
+        <div class="upload-box">
+          <div class="muted">
+            Tire uma foto de uma nota, etiqueta ou lista de preços. O sistema tenta encontrar valores automaticamente.
+          </div>
+
+          <div class="actions">
+            <label for="cameraInput" class="file-label primary">📷 Abrir câmera</label>
+            <label for="galleryInput" class="file-label secondary">🖼️ Escolher imagem</label>
+            <button class="btn ghost" id="readTextBtn" type="button" disabled>Ler preços</button>
+            <button class="btn danger" id="clearBtn" type="button">Limpar</button>
+          </div>
+
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" />
+          <input id="galleryInput" type="file" accept="image/*" />
+
+          <div class="preview-wrap" id="previewWrap">
+            <div class="placeholder" id="placeholder">
+              Nenhuma imagem carregada.<br />
+              Use a câmera ou escolha uma imagem da galeria.
+            </div>
+            <img id="previewImage" alt="Prévia da imagem" style="display:none;" />
+          </div>
+
+          <div class="ocr-status" id="ocrStatus">
+            Status: aguardando imagem.
+          </div>
+
+          <div class="ocr-output" id="ocrOutput" style="display:none;"></div>
+
+          <div class="hint">
+            Dica: imagens mais nítidas e com fundo limpo ajudam a encontrar os preços com mais precisão.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="summary-top">
+          <div>
+            <h2>Resumo inteligente</h2>
+            <div class="muted">Os valores encontrados podem ser editados antes do cálculo final.</div>
+          </div>
+
+          <div class="total-box">
+            <div class="total-label">TOTAL</div>
+            <div class="total-value" id="totalValue">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat">
+            <div class="stat-label">Itens encontrados</div>
+            <div class="stat-value" id="countValue">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Maior valor</div>
+            <div class="stat-value" id="maxValue">R$ 0,00</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Menor valor</div>
+            <div class="stat-value" id="minValue">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="list" id="pricesList"></div>
+
+        <div class="empty-state" id="emptyState">
+          Nenhum preço detectado ainda.<br />
+          Quando a leitura terminar, os valores aparecerão aqui.
+        </div>
+
+        <div class="manual-add">
+          <h2 style="margin:0;font-size:18px;">Adicionar valor manualmente</h2>
+          <div class="manual-row">
+            <input id="manualPriceInput" type="text" placeholder="Ex.: 12,90" />
+            <button class="btn primary" id="addManualBtn" type="button">Adicionar</button>
+          </div>
+          <div class="hint">
+            Você pode corrigir valores errados, remover itens ou adicionar preços que o OCR não encontrou.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    const cameraInput = document.getElementById("cameraInput");
+    const galleryInput = document.getElementById("galleryInput");
+    const previewImage = document.getElementById("previewImage");
+    const previewWrap = document.getElementById("previewWrap");
+    const placeholder = document.getElementById("placeholder");
+    const readTextBtn = document.getElementById("readTextBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const ocrStatus = document.getElementById("ocrStatus");
+    const ocrOutput = document.getElementById("ocrOutput");
+
+    const pricesList = document.getElementById("pricesList");
+    const totalValue = document.getElementById("totalValue");
+    const countValue = document.getElementById("countValue");
+    const maxValue = document.getElementById("maxValue");
+    const minValue = document.getElementById("minValue");
+    const emptyState = document.getElementById("emptyState");
+
+    const manualPriceInput = document.getElementById("manualPriceInput");
+    const addManualBtn = document.getElementById("addManualBtn");
+
+    let currentImageUrl = null;
+    let prices = [];
+
+    function formatBRL(value) {
+      return value.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function normalizePriceText(text) {
+      let t = (text || "").trim();
+
+      if (!t) return null;
+
+      t = t.replace(/[Rr]\$/g, "").trim();
+      t = t.replace(/\s+/g, "");
+      t = t.replace(/\./g, "").replace(",", ".");
+
+      const n = Number(t);
+      if (!Number.isFinite(n)) return null;
+      if (n <= 0) return null;
+
+      return Number(n.toFixed(2));
+    }
+
+    function uniquePrices(arr) {
+      const seen = new Set();
+      return arr.filter((n) => {
+        const key = n.toFixed(2);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function extractPrices(text) {
+      const patterns = [
+        /(?:R\$\s*)?\d{1,3}(?:\.\d{3})*,\d{2}/g,
+        /(?:R\$\s*)?\d+,\d{2}/g,
+        /(?:R\$\s*)?\d+\.\d{2}/g
+      ];
+
+      const found = [];
+
+      for (const pattern of patterns) {
+        const matches = text.match(pattern) || [];
+        for (const match of matches) {
+          const value = normalizePriceText(match);
+          if (value !== null) {
+            found.push(value);
+          }
+        }
+      }
+
+      return uniquePrices(found);
+    }
+
+    function updateSummary() {
+      const total = prices.reduce((sum, item) => sum + item.value, 0);
+      totalValue.textContent = formatBRL(total);
+      countValue.textContent = String(prices.length);
+
+      if (prices.length > 0) {
+        const values = prices.map(item => item.value);
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        maxValue.textContent = formatBRL(max);
+        minValue.textContent = formatBRL(min);
+      } else {
+        maxValue.textContent = formatBRL(0);
+        minValue.textContent = formatBRL(0);
+      }
+    }
+
+    function updateList() {
+      pricesList.innerHTML = "";
+
+      if (prices.length === 0) {
+        emptyState.style.display = "block";
+        updateSummary();
+        return;
+      }
+
+      emptyState.style.display = "none";
+
+      prices.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "item";
+
+        const left = document.createElement("div");
+        left.innerHTML = `
+          <div class="item-meta">Preço ${index + 1}</div>
+        `;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = item.display;
+        input.addEventListener("input", (e) => {
+          prices[index].display = e.target.value;
+        });
+
+        input.addEventListener("blur", () => {
+          const parsed = normalizePriceText(input.value);
+          if (parsed === null) {
+            input.value = prices[index].display;
+            return;
+          }
+          prices[index].value = parsed;
+          prices[index].display = parsed.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+          input.value = prices[index].display;
+          updateSummary();
+        });
+
+        left.appendChild(input);
+
+        const valueInfo = document.createElement("div");
+        valueInfo.className = "muted";
+        valueInfo.style.fontSize = "12px";
+        valueInfo.style.fontWeight = "700";
+        valueInfo.textContent = formatBRL(item.value);
+
+        const valueWrap = document.createElement("div");
+        valueWrap.appendChild(valueInfo);
+
+        const deleteWrap = document.createElement("div");
+        deleteWrap.className = "delete-wrap";
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "mini-btn";
+        deleteBtn.type = "button";
+        deleteBtn.textContent = "✕";
+        deleteBtn.addEventListener("click", () => {
+          prices.splice(index, 1);
+          updateList();
+        });
+
+        deleteWrap.appendChild(deleteBtn);
+
+        row.appendChild(left);
+        row.appendChild(valueWrap);
+        row.appendChild(deleteWrap);
+
+        pricesList.appendChild(row);
+      });
+
+      updateSummary();
+    }
+
+    function loadImage(file) {
+      if (!file) return;
+
+      if (currentImageUrl) {
+        URL.revokeObjectURL(currentImageUrl);
+      }
+
+      currentImageUrl = URL.createObjectURL(file);
+      previewImage.src = currentImageUrl;
+      previewImage.style.display = "block";
+      placeholder.style.display = "none";
+      readTextBtn.disabled = false;
+      ocrStatus.textContent = "Status: imagem carregada. Pronto para ler.";
+      ocrOutput.style.display = "none";
+      ocrOutput.textContent = "";
+    }
+
+    cameraInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      loadImage(file);
+    });
+
+    galleryInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      loadImage(file);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if (currentImageUrl) {
+        URL.revokeObjectURL(currentImageUrl);
+        currentImageUrl = null;
+      }
+
+      previewImage.src = "";
+      previewImage.style.display = "none";
+      placeholder.style.display = "block";
+      cameraInput.value = "";
+      galleryInput.value = "";
+      readTextBtn.disabled = true;
+      ocrStatus.textContent = "Status: aguardando imagem.";
+      ocrOutput.style.display = "none";
+      ocrOutput.textContent = "";
+      prices = [];
+      updateList();
+      manualPriceInput.value = "";
+    });
+
+    addManualBtn.addEventListener("click", () => {
+      const parsed = normalizePriceText(manualPriceInput.value);
+      if (parsed === null) {
+        alert("Digite um valor válido. Ex.: 12,90");
+        return;
+      }
+
+      prices.push({
+        value: parsed,
+        display: parsed.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+      });
+
+      manualPriceInput.value = "";
+      updateList();
+    });
+
+    manualPriceInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        addManualBtn.click();
+      }
+    });
+
+    readTextBtn.addEventListener("click", async () => {
+      if (!previewImage.src) return;
+
+      readTextBtn.disabled = true;
+      ocrStatus.textContent = "Status: processando OCR...";
+      ocrOutput.style.display = "none";
+
+      try {
+        const result = await Tesseract.recognize(previewImage.src, "por", {
+          logger: (m) => {
+            if (m.status === "recognizing text") {
+              const pct = Math.round((m.progress || 0) * 100);
+              ocrStatus.textContent = `Status: lendo texto... ${pct}%`;
+            } else {
+              ocrStatus.textContent = `Status: ${m.status}`;
+            }
+          }
+        });
+
+        const text = result?.data?.text || "";
+        ocrOutput.style.display = "block";
+        ocrOutput.textContent = text || "Nenhum texto encontrado.";
+
+        const foundPrices = extractPrices(text);
+
+        prices = foundPrices.map(value => ({
+          value,
+          display: value.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })
+        }));
+
+        if (prices.length > 0) {
+          ocrStatus.textContent = `Status: leitura concluída. ${prices.length} preço(s) encontrado(s).`;
+        } else {
+          ocrStatus.textContent = "Status: leitura concluída, mas nenhum preço foi encontrado automaticamente.";
+        }
+
+        updateList();
+      } catch (error) {
+        console.error(error);
+        ocrStatus.textContent = "Status: erro ao processar a imagem.";
+        alert("Não foi possível ler a imagem. Tente outra foto mais nítida.");
+      } finally {
+        readTextBtn.disabled = false;
+      }
+    });
+
+    updateList();
+  </script>
+</body>
+</html>
