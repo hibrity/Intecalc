@@ -1,1 +1,1 @@
-# Intecalc
+# intecalc
